@@ -4,6 +4,8 @@ If you're like me you'll probably have a lot of projects you've created to test 
 
 This packages gives you the ability to easily clean up your `node_modules` directories in your projects by a simple command, using `npx` which we're all familiar with.
 
+> Don't worry, running the script itself won't just start removing the directories, it'll give you a list where you need to select the projects for which you would like to remove installed dependencies.
+
 ## Cleaning up packages
 
 Cleaning up projects in current directory

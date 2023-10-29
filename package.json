@@ -1,8 +1,11 @@
 {
   "name": "nmcu",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "Clean up node_modules directories over projects",
   "main": "index.js",
+  "bin": {
+    "nmc": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

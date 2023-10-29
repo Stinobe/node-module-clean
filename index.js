@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 const loading = require("loading-cli");
 const { existsSync } = require("fs");
 const {
@@ -21,6 +22,7 @@ const prompts = require("prompts");
 const colors = require("colors-cli");
 const { nativeSync } = require("rimraf");
 const { convertFileSize } = require("./utils/convert");
+const { resolve } = require("path");
 const directories = [];
 
 const getDirectories = async (paths) => {
@@ -34,7 +36,7 @@ const getDirectories = async (paths) => {
     const exists = await existsSync(path);
     if (exists) {
       // If the path exists, push it to the array of existing paths
-      existingPaths.push(path);
+      existingPaths.push(resolve(__dirname, path));
       // inform the user
       ldr.stop().clear();
     } else {
@@ -129,4 +131,4 @@ const getDirectories = async (paths) => {
 
 const argv = require("minimist")(process.argv.slice(2));
 const { _: paths, ...rest } = argv;
-getDirectories(paths.length ? paths : ["."]);
+getDirectories(paths.length ? paths : [process.cwd()]);
