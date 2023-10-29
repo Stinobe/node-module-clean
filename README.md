@@ -6,6 +6,8 @@ This packages gives you the ability to easily clean up your `node_modules` direc
 
 > Don't worry, running the script itself won't just start removing the directories, it'll give you a list where you need to select the projects for which you would like to remove installed dependencies.
 
+![Example](./example.gif)
+
 ## Cleaning up packages
 
 Cleaning up projects in current directory
