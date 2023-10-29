@@ -2,9 +2,15 @@ const loading = require("loading-cli");
 const { existsSync } = require("fs");
 const {
   msgPathNotFound,
-  msgPathFound,
+  msgFoundPackage,
   msgPackageInfo,
   msgDirInfo,
+  msgNoPackagesFound,
+  msgTotalInstalled,
+  msgRemoving,
+  msgCancelled,
+  msgRemoved,
+  msgRemovedSize,
 } = require("./utils/colors");
 const {
   getTargetDirectories,
@@ -13,6 +19,8 @@ const {
 } = require("./utils/dirFinder");
 const prompts = require("prompts");
 const colors = require("colors-cli");
+const { nativeSync } = require("rimraf");
+const { convertFileSize } = require("./utils/convert");
 const directories = [];
 
 const getDirectories = async (paths) => {
@@ -28,7 +36,7 @@ const getDirectories = async (paths) => {
       // If the path exists, push it to the array of existing paths
       existingPaths.push(path);
       // inform the user
-      ldr.succeed(msgPathFound(path));
+      ldr.stop().clear();
     } else {
       // If it does not exists just inform the user
       ldr.fail(msgPathNotFound(path));
@@ -54,44 +62,71 @@ const getDirectories = async (paths) => {
       });
     }
     if (allSubDirs.length)
-      sizeLdr.succeed(`Found ${allSubDirs.length} directories in ${path}`);
-    else sizeLdr.warn(`No packages found in ${path}`);
+      sizeLdr.succeed(msgFoundPackage(allSubDirs.length, path));
+    else sizeLdr.warn(msgNoPackagesFound(path));
   }
 
-  console.log(directories);
+  if (!directories.length)
+    console.log("No packages with installed dependencies found");
+  else {
+    directories.sort((subdirA, subdirB) => {
+      if (subdirA.parent.toLowerCase() < subdirB.parent.toLowerCase())
+        return -1;
+      if (subdirA.parent.toLowerCase() > subdirB.parent.toLowerCase()) return 1;
+      return 0;
+    });
 
-  directories.sort((subdirA, subdirB) => {
-    if (subdirA.parent.toLowerCase() < subdirB.parent.toLowerCase()) return -1;
-    if (subdirA.parent.toLowerCase() > subdirB.parent.toLowerCase()) return 1;
-    return 0;
-  });
+    const totalSize = directories.reduce(
+      (acc, current) => acc + current.size,
+      0
+    );
+    loading(msgTotalInstalled(totalSize)).info();
 
-  const list = {
-    type: "multiselect",
-    name: "targetDirectories",
-    message: "For which project do you wish to remove installed dependencies?",
-    instructions: false,
-    choices: directories.map(({ pkgName, version, parent, size, target }) => ({
-      title: `${
-        pkgName ? msgPackageInfo(pkgName, version, size) : msgDirInfo(parent)
-      } ${colors.yellow(
-        colors.faint(`(${(size / 1024 / 1024).toFixed(2)} MB)`)
-      )}`,
-      value: { target, size },
-    })),
-  };
+    const list = {
+      type: "multiselect",
+      name: "targetDirectories",
+      message:
+        "For which project do you wish to remove installed dependencies?",
+      instructions: false,
+      choices: directories.map(
+        ({ pkgName, version, parent, size, target }) => ({
+          title: `${
+            pkgName
+              ? msgPackageInfo(pkgName, version, size)
+              : msgDirInfo(parent)
+          } ${colors.yellow(
+            colors.faint(`(${convertFileSize(size)})`)
+          )} ${colors.black_bt(`(${target})`)}`,
+          value: { target, size, pkgName, parent },
+        })
+      ),
+    };
 
-  const answer = await prompts(list);
-  const totalSize = answer.targetDirectories.reduce(
-    (acc, current) => acc + current.size,
-    0
-  );
-  console.log(
-    (totalSize / 1024 / 1024).toFixed(2),
-    "MB would have been removed"
-  );
+    const answer = await prompts(list);
+
+    if (!answer.targetDirectories) console.log(msgCancelled);
+    else {
+      for (path of answer.targetDirectories) {
+        const ldrRemove = loading(
+          msgRemoving(path.pkgName || path.parent, path.target)
+        ).start();
+        try {
+          ldrRemove.render();
+          await nativeSync(path.target);
+          ldrRemove.succeed(msgRemoved(path.pkgName || path.parent));
+        } catch (e) {
+          ldrRemove.fail(`Failed to remove ${path}`);
+        }
+      }
+      const sizeRemoved = answer.targetDirectories.reduce(
+        (acc, current) => acc + current.size,
+        0
+      );
+      loading(msgRemovedSize(sizeRemoved, totalSize)).succeed();
+    }
+  }
 };
 
 const argv = require("minimist")(process.argv.slice(2));
 const { _: paths, ...rest } = argv;
-getDirectories(paths);
+getDirectories(paths.length ? paths : ["."]);
