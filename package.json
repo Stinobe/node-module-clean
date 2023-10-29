@@ -12,6 +12,7 @@
     "colors-cli": "^1.0.32",
     "get-folder-size": "^2.0.1",
     "loading-cli": "^1.1.1",
-    "minimist": "^1.2.8"
+    "minimist": "^1.2.8",
+    "prompts": "^2.4.2"
   }
 }

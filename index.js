@@ -1,11 +1,18 @@
 const loading = require("loading-cli");
 const { existsSync } = require("fs");
-const { msgPathNotFound, msgPathFound } = require("./utils/colors");
+const {
+  msgPathNotFound,
+  msgPathFound,
+  msgPackageInfo,
+  msgDirInfo,
+} = require("./utils/colors");
 const {
   getTargetDirectories,
   getDirectorySize,
   getPackageInfo,
 } = require("./utils/dirFinder");
+const prompts = require("prompts");
+const colors = require("colors-cli");
 const directories = [];
 
 const getDirectories = async (paths) => {
@@ -38,9 +45,12 @@ const getDirectories = async (paths) => {
       const size = await getDirectorySize(dirPath);
       const pkgInfo = await getPackageInfo(dirPath);
       directories.push({
+        parent: path.split("/").pop(),
         path,
+        name,
+        target: dirPath,
         ...pkgInfo,
-        size: (size / 1024 / 1024).toFixed(2),
+        size: size,
       });
     }
     if (allSubDirs.length)
@@ -49,6 +59,37 @@ const getDirectories = async (paths) => {
   }
 
   console.log(directories);
+
+  directories.sort((subdirA, subdirB) => {
+    if (subdirA.parent.toLowerCase() < subdirB.parent.toLowerCase()) return -1;
+    if (subdirA.parent.toLowerCase() > subdirB.parent.toLowerCase()) return 1;
+    return 0;
+  });
+
+  const list = {
+    type: "multiselect",
+    name: "targetDirectories",
+    message: "For which project do you wish to remove installed dependencies?",
+    instructions: false,
+    choices: directories.map(({ pkgName, version, parent, size, target }) => ({
+      title: `${
+        pkgName ? msgPackageInfo(pkgName, version, size) : msgDirInfo(parent)
+      } ${colors.yellow(
+        colors.faint(`(${(size / 1024 / 1024).toFixed(2)} MB)`)
+      )}`,
+      value: { target, size },
+    })),
+  };
+
+  const answer = await prompts(list);
+  const totalSize = answer.targetDirectories.reduce(
+    (acc, current) => acc + current.size,
+    0
+  );
+  console.log(
+    (totalSize / 1024 / 1024).toFixed(2),
+    "MB would have been removed"
+  );
 };
 
 const argv = require("minimist")(process.argv.slice(2));
