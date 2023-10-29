@@ -1,5 +1,5 @@
 {
-  "name": "nmc",
+  "name": "nmcu",
   "version": "0.0.1",
   "description": "Clean up node_modules directories over projects",
   "main": "index.js",

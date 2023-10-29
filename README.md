@@ -9,17 +9,17 @@ This packages gives you the ability to easily clean up your `node_modules` direc
 Cleaning up projects in current directory
 
 ```bash
-npx nmc
+npx nmcu
 ```
 
 Cleaning up projects in a given directory
 
 ```bash
-npx nmc ~/Projects
+npx nmcu ~/Projects
 ```
 
 Cleaning up projects in multiple directories at once
 
 ```bash
-npx nmc ~/Projects ~/Sites
+npx nmcu ~/Projects ~/Sites
 ```
