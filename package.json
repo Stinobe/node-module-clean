@@ -1,0 +1,17 @@
+{
+  "name": "nmc",
+  "version": "0.0.1",
+  "description": "Clean up node_modules directories over projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "stinobe",
+  "license": "ISC",
+  "dependencies": {
+    "colors-cli": "^1.0.32",
+    "get-folder-size": "^2.0.1",
+    "loading-cli": "^1.1.1",
+    "minimist": "^1.2.8"
+  }
+}
