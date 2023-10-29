@@ -1,6 +1,6 @@
 {
   "name": "nmcu",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Clean up node_modules directories over projects",
   "main": "index.js",
   "bin": {
